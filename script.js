@@ -22,6 +22,13 @@ class Calculator {
 
 	chooseOperation(operation) {
 		if (this.currentOperand === "") return;
+
+		if (["√"].includes(operation)) {
+			this.operation = operation;
+			this.compute();
+			this.updateDisplay(); // Ensure the UI updates immediately
+			return;
+		}
 		if (this.previousOperand !== "") {
 			this.compute();
 		}
@@ -34,19 +41,34 @@ class Calculator {
 		let computation;
 		const prev = parseFloat(this.previousOperand);
 		const current = parseFloat(this.currentOperand);
-		if (isNaN(prev) || isNaN(current)) return;
 		switch (this.operation) {
 			case "+":
+				if (isNaN(prev) || isNaN(current)) return;
 				computation = prev + current;
 				break;
 			case "-":
+				if (isNaN(prev) || isNaN(current)) return;
 				computation = prev - current;
 				break;
 			case "*":
+				if (isNaN(prev) || isNaN(current)) return;
 				computation = prev * current;
 				break;
 			case "/":
+				if (isNaN(prev) || isNaN(current)) return;
 				computation = prev / current;
+				break;
+			case "%":
+				if (isNaN(prev) || isNaN(current)) return;
+				computation = (prev / 100) * current;
+				break;
+			case "^":
+				if (isNaN(prev) || isNaN(current)) return;
+				computation = prev ** current;
+				break;
+			case "√":
+				if (isNaN(current)) return;
+				computation = Math.sqrt(current);
 				break;
 			default:
 				return;
@@ -77,6 +99,7 @@ const operationButtons = document.querySelectorAll("[data-operation]");
 const equalsButton = document.querySelector("[data-equals]");
 const deleteButton = document.querySelector("[data-delete]");
 const allClearButton = document.querySelector("[data-all-clear]");
+
 const previousOperandTextElement = document.querySelector(
 	"[data-previous-operand]"
 );

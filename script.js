@@ -9,6 +9,7 @@ class Calculator {
 		this.currentOperand = "";
 		this.previousOperand = "";
 		this.operation = undefined;
+		this.isResult = false; // added tracker if result is shown
 	}
 
 	delete() {
@@ -16,7 +17,28 @@ class Calculator {
 	}
 
 	appendNumber(number) {
-		if (number === "." && this.currentOperand.includes(".")) return;
+		if (this.isResult) {
+			this.currentOperand = "";
+			this.isResult = false;
+		}
+
+		if (number === "." && this.currentOperand.includes(".")) {
+			return;
+		}
+		if (number === "π") {
+			// If the screen is empty, set π
+			if (this.currentOperand === "") {
+				this.currentOperand = Math.PI.toString();
+				this.isResult = true; // Set result to true after setting π
+			} else {
+				// Optional: multiply current value by π if π is pressed after a number
+				this.currentOperand = (
+					parseFloat(this.currentOperand) * Math.PI
+				).toString();
+				this.isResult = true; // Set result to true after multiplication
+			}
+			return;
+		}
 		this.currentOperand = this.currentOperand.toString() + number.toString();
 	}
 
@@ -76,10 +98,23 @@ class Calculator {
 		this.currentOperand = computation;
 		this.operation = undefined;
 		this.previousOperand = "";
+		this.isResult = true; // Set result to true after computation
 	}
 
 	getDisplayNumber(number) {
-		return number;
+		if (!this.isResult) {
+			return number.toString(); // Show raw input while typing
+		}
+		const num = parseFloat(number);
+		if (isNaN(num)) return "";
+
+		// If it's an integer, just return it as-is
+		if (Number.isInteger(num)) {
+			return num.toString();
+		}
+
+		// Otherwise, show up to 6 decimal places
+		return num.toFixed(6).replace(/\.?0+$/, ""); // also removes trailing zeroes
 	}
 
 	updateDisplay() {

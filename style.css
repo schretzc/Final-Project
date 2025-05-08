@@ -27,11 +27,9 @@ body {
 	border: 1px solid black;
 	outline: none;
 	background: radial-gradient(#00f2ff88, #ff00aaa2);
-	/* background-color: rgba(255, 255, 255, 0.3); */
 }
 
 .calculator-grid > button:hover {
-	/* background-color: rgba(255, 255, 255, 0.3); */
 	background: radial-gradient(#ff00aa35, #00f2ff8e);
 }
 
@@ -53,7 +51,6 @@ body {
 }
 
 .output .previous-operand {
-	/* color: rgba(255, 255, 255, 0.75); */
 	color: #ff00aa;
 	font-size: 2rem;
 }

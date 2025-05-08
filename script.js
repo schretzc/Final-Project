@@ -9,7 +9,8 @@ class Calculator {
 		this.currentOperand = "";
 		this.previousOperand = "";
 		this.operation = undefined;
-		this.isResult = false; // added tracker if result is shown
+		//tracker if result is shown
+		this.isResult = false;
 	}
 
 	delete() {
@@ -26,16 +27,17 @@ class Calculator {
 			return;
 		}
 		if (number === "π") {
-			// If the screen is empty, set π
+			// if the screen is empty set pi
 			if (this.currentOperand === "") {
 				this.currentOperand = Math.PI.toString();
-				this.isResult = true; // Set result to true after setting π
+				// set result to true after setting π
+				this.isResult = true;
 			} else {
-				// Optional: multiply current value by π if π is pressed after a number
+				//multiply current value by pi if pi is pressed after a number
 				this.currentOperand = (
 					parseFloat(this.currentOperand) * Math.PI
 				).toString();
-				this.isResult = true; // Set result to true after multiplication
+				this.isResult = true;
 			}
 			return;
 		}
@@ -48,7 +50,8 @@ class Calculator {
 		if (["√"].includes(operation)) {
 			this.operation = operation;
 			this.compute();
-			this.updateDisplay(); // Ensure the UI updates immediately
+			//ensure the UI updates immediately
+			this.updateDisplay();
 			return;
 		}
 		if (this.previousOperand !== "") {
@@ -98,23 +101,24 @@ class Calculator {
 		this.currentOperand = computation;
 		this.operation = undefined;
 		this.previousOperand = "";
-		this.isResult = true; // Set result to true after computation
+		//set result to true after computation
+		this.isResult = true;
 	}
 
 	getDisplayNumber(number) {
 		if (!this.isResult) {
-			return number.toString(); // Show raw input while typing
+			return number.toString();
 		}
 		const num = parseFloat(number);
 		if (isNaN(num)) return "";
 
-		// If it's an integer, just return it as-is
+		// if integer, just return it
 		if (Number.isInteger(num)) {
 			return num.toString();
 		}
 
-		// Otherwise, show up to 6 decimal places
-		return num.toFixed(6).replace(/\.?0+$/, ""); // also removes trailing zeroes
+		// otherwise, show up to 6 decimal places
+		return num.toFixed(6).replace(/\.?0+$/, "");
 	}
 
 	updateDisplay() {

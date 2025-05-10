@@ -3,13 +3,15 @@ class Calculator {
 		this.previousOperandTextElement = previousOperandTextElement;
 		this.currentOperandTextElement = currentOperandTextElement;
 		this.clear();
+		this.expression = "";
 	}
+
 
 	clear() {
 		this.currentOperand = "";
 		this.previousOperand = "";
 		this.operation = undefined;
-		//tracker if result is shown
+		this.expression = "";
 		this.isResult = false;
 	}
 
@@ -18,91 +20,166 @@ class Calculator {
 	}
 
 	appendNumber(number) {
+		console.log("appendNumber -> expression:", this.expression);
+		console.log("Last char code:", this.expression.charCodeAt(this.expression.length - 1));
+	
 		if (this.isResult) {
 			this.currentOperand = "";
+			this.expression = "";
 			this.isResult = false;
 		}
-
+	
 		if (number === "." && this.currentOperand.includes(".")) {
 			return;
 		}
+	
+		if (number === "(" || number === ")") {
+			this.currentOperand += number;
+			this.expression += number;
+			return;
+		}
+	
 		if (number === "π") {
-			// if the screen is empty set pi
 			if (this.currentOperand === "") {
 				this.currentOperand = Math.PI.toString();
-				// set result to true after setting π
+				this.expression += Math.PI.toString(); // ✅ You were missing this
 				this.isResult = true;
 			} else {
-				//multiply current value by pi if pi is pressed after a number
-				this.currentOperand = (
-					parseFloat(this.currentOperand) * Math.PI
-				).toString();
+				const result = parseFloat(this.currentOperand) * Math.PI;
+				this.currentOperand = result.toString();
+				this.expression += `*${Math.PI}`;
 				this.isResult = true;
 			}
 			return;
 		}
-		this.currentOperand = this.currentOperand.toString() + number.toString();
+	
+		// ✅ Normalize fancy minus (U+2212) to regular minus
+		if (number === "−") {
+			number = "-";
+		}
+	
+		// ✅ Allow negative number at start
+		if (number === "-" && this.currentOperand === "") {
+			this.currentOperand = "-";
+			this.expression += "-";
+			return;
+		}
+	
+		this.currentOperand += number.toString();
+		this.expression += number.toString();
 	}
+	
 
 	chooseOperation(operation) {
-		if (this.currentOperand === "") return;
-
-		if (["√"].includes(operation)) {
-			this.operation = operation;
-			this.compute();
-			//ensure the UI updates immediately
+		if (this.currentOperand === "" && this.expression === "") return;
+	
+		// Handle square root symbol visually
+		if (operation === "√") {
+			this.currentOperand += "√(";
+			this.expression += "Math.sqrt(";
 			this.updateDisplay();
 			return;
 		}
-		if (this.previousOperand !== "") {
-			this.compute();
-		}
-		this.operation = operation;
+	
+		// Translate display-friendly symbols to code
+		const symbolMap = {
+			"×": "*",
+			"÷": "/",
+			"^": "**"
+		};
+	
+		const opForEval = symbolMap[operation] || operation;
+	
+		this.expression += opForEval;
+		this.currentOperand += operation;
+	
 		this.previousOperand = this.currentOperand;
-		this.currentOperand = "";
+
+		//if (!this.currentOperandTextElement.includes("(")){
+		//	this.currentOperand = "";
+		//}
+
+		this.updateDisplay();
 	}
+	
 
 	compute() {
+		console.log("Raw expression:", this.expression);
+		console.log("Character codes:", [...this.expression].map(c => c.charCodeAt(0)));
+
+
 		let computation;
-		const prev = parseFloat(this.previousOperand);
-		const current = parseFloat(this.currentOperand);
-		switch (this.operation) {
-			case "+":
-				if (isNaN(prev) || isNaN(current)) return;
-				computation = prev + current;
-				break;
-			case "-":
-				if (isNaN(prev) || isNaN(current)) return;
-				computation = prev - current;
-				break;
-			case "*":
-				if (isNaN(prev) || isNaN(current)) return;
-				computation = prev * current;
-				break;
-			case "/":
-				if (isNaN(prev) || isNaN(current)) return;
-				computation = prev / current;
-				break;
-			case "%":
-				if (isNaN(prev) || isNaN(current)) return;
-				computation = (prev / 100) * current;
-				break;
-			case "^":
-				if (isNaN(prev) || isNaN(current)) return;
-				computation = prev ** current;
-				break;
-			case "√":
-				if (isNaN(current)) return;
-				computation = Math.sqrt(current);
-				break;
-			default:
-				return;
+	
+		if (this.operation) {
+			const prev = parseFloat(this.previousOperand);
+			const current = parseFloat(this.currentOperand);
+	
+			switch (this.operation) {
+				case "+":
+					if (isNaN(prev) || isNaN(current)) return;
+					computation = prev + current;
+					break;
+				case "-":
+					if (isNaN(prev) || isNaN(current)) return;
+					computation = prev - current;
+					break;
+				case "*":
+					if (isNaN(prev) || isNaN(current)) return;
+					computation = prev * current;
+					break;
+				case "/":
+					if (isNaN(prev) || isNaN(current)) return;
+					computation = prev / current;
+					break;
+				case "%":
+					if (isNaN(prev) || isNaN(current)) return;
+					computation = (prev / 100) * current;
+					break;
+				case "^":
+					if (isNaN(prev) || isNaN(current)) return;
+					computation = prev ** current;
+					break;
+				case "√":
+					if (isNaN(current)) return;
+					computation = Math.sqrt(current);
+					break;
+				default:
+					return;
+
+			}
+	
+			this.currentOperand = computation.toString();
+			this.expression = this.currentOperand; 
+			this.operation = undefined;
+			this.previousOperand = "";
+			this.isResult = true;
+			return;
 		}
-		this.currentOperand = computation;
-		this.operation = undefined;
-		this.previousOperand = "";
-		//set result to true after computation
-		this.isResult = true;
+	
+		
+	
+		try {
+			const sanitizedExpression = this.expression
+				.replace(/[×⨉✕∗]/g, "*")
+				.replace(/[÷]/g, "/")
+				.replace(/√/g, "Math.sqrt")
+				.replace(/\u2212/g, "-");
+		
+			console.log("Evaluating expression:", sanitizedExpression);
+			
+			const result = eval(sanitizedExpression);
+			this.currentOperand = result.toString();
+			this.expression = result.toString();
+			this.previousOperand = "";
+			this.operation = undefined;
+			this.isResult = true;
+		} 
+		catch {
+			this.currentOperand = "Error";
+			this.expression = "";
+			this.isResult = true;
+		}
+		
 	}
 
 	getDisplayNumber(number) {
@@ -151,6 +228,9 @@ const calculator = new Calculator(
 	currentOperandTextElement
 );
 
+const scientificButtons = document.querySelectorAll("[data-scientific]");
+
+
 numberButtons.forEach((button) => {
 	button.addEventListener("click", () => {
 		calculator.appendNumber(button.innerText);
@@ -179,3 +259,121 @@ deleteButton.addEventListener("click", () => {
 	calculator.delete();
 	calculator.updateDisplay();
 });
+
+
+scientificButtons.forEach((button) => {
+	button.addEventListener("click", () => {
+		const func = button.dataset.scientific;
+		let value = parseFloat(calculator.currentOperand);
+		if (isNaN(value)) return;
+
+		switch (func) {
+			case "sin":
+				calculator.currentOperand = Math.sin(value).toString();
+				break;
+			case "cos":
+				calculator.currentOperand = Math.cos(value).toString();
+				break;
+			case "tan":
+				calculator.currentOperand = Math.tan(value).toString();
+				break;
+			case "log":
+				calculator.currentOperand = Math.log10(value).toString();
+				break;
+			case "ln":
+				calculator.currentOperand = Math.log(value).toString();
+				break;
+			case "exp":
+				calculator.currentOperand = Math.exp(value).toString();
+				break;
+			case "ten":
+			case "log_inv":
+				calculator.currentOperand = Math.pow(10, value).toString();
+				break;
+			case "inv":
+				calculator.currentOperand = (1 / value).toString();
+				break;
+			case "fact":
+				calculator.currentOperand = factorial(value).toString();
+				break;
+			case "abs":
+				calculator.currentOperand = Math.abs(value).toString();
+				break;
+			case "ln_inv":
+				calculator.currentOperand = Math.exp(value).toString();
+				break;
+			case "rand":
+				calculator.currentOperand = Math.random().toString();
+				break;
+			default:
+				return;
+		}
+
+		calculator.isResult = true;
+		calculator.updateDisplay();
+	});
+});
+
+
+function factorial(n) {
+	if (n < 0) return NaN;
+	if (n === 0 || n === 1) return 1;
+	let result = 1;
+	for (let i = 2; i <= n; i++) {
+		result *= i;
+	}
+	return result;
+}
+
+
+
+
+
+document.addEventListener("keydown", (event) => {
+	const key = event.key;
+
+	
+	if (!isNaN(key) || key === ".") {
+		calculator.appendNumber(key);
+		calculator.updateDisplay();
+	}
+
+
+	if (["+", "-", "*", "/", "%", "^"].includes(key)) {
+		calculator.chooseOperation(key);
+		calculator.updateDisplay();
+	}
+
+
+	if (key === "Enter" || key === "=") {
+		event.preventDefault(); // prevent form submit if present
+		calculator.compute();
+		calculator.updateDisplay();
+	}
+
+
+	if (key === "Backspace") {
+		calculator.delete();
+		calculator.updateDisplay();
+	}
+
+
+	if (key.toLowerCase() === "c") {
+		calculator.clear();
+		calculator.updateDisplay();
+	}
+
+	// Keyboard shortcut for  √ and π 
+	//use r key for square root
+	// use p for pi
+	if (key.toLowerCase() === "r") {
+		calculator.chooseOperation("√");
+		calculator.updateDisplay();
+	}
+	if (key.toLowerCase() === "p") {
+		calculator.appendNumber("π");
+		calculator.updateDisplay();
+	}
+});s
+
+

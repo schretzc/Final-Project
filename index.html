@@ -1,44 +1,67 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Calculator Final Project</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="script.js" defer></script>
+	<meta charset="UTF-8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+	<title>Scientific Calculator</title>
+	<link rel="stylesheet" href="style.css" />
+	<script src="script.js" defer></script>
 </head>
-
 <body>
-    <div class="calculator-grid">
-        <div class="output">
-            <div data-previous-operand class="previous-operand"></div>
-            <div data-current-operand class="current-operand"></div>
-        </div>
-        <button data-all-clear class="span-two">Clear/AC</button>
-        <button data-delete>DEL</button>
-        <button data-operation>/</button>
-        <button data-number>1</button>
-        <button data-number>2</button>
-        <button data-number>3</button>
-        <button data-operation>*</button>
-        <button data-number>4</button>
-        <button data-number>5</button>
-        <button data-number>6</button>
-        <button data-operation>+</button>
-        <button data-number>7</button>
-        <button data-number>8</button>
-        <button data-number>9</button>
-        <button data-operation>-</button>
-        <button data-number>.</button>
-        <button data-number>0</button>
-        <button data-operation>√</button>
-        <button data-operation>^</button>
-        <button data-operation>%</button>
-        <button data-number>π</button>
-        <button data-equals class="span-two">=</button>
+	<div class="calculator-grid">
+		<!-- Display Output -->
+		<div class="output span-six">
+			<div data-previous-operand class="previous-operand"></div>
+			<div data-current-operand class="current-operand"></div>
+		</div>
 
-    </div>
+		<!-- Scientific Functions Row 1 -->
+		<button data-scientific="sin">sin</button>
+		<button data-scientific="cos">cos</button>
+		<button data-scientific="tan">tan</button>
+		<button data-scientific="log">log</button>
+		<button data-scientific="ln">ln</button>
+		<button data-scientific="ln_inv">ln⁻¹</button>
+
+		<!-- Scientific Functions Row 2 -->
+		<button data-scientific="log_inv">log⁻¹</button>
+		<button data-scientific="inv">1/x</button>
+		<button data-scientific="fact">x!</button>
+		<button data-scientific="abs">|x|</button>
+		<button data-operation="√">√</button>
+		<button data-operation="mod">mod</button>
+
+		<!-- Functional Row (AC spans 2) -->
+		<button data-all-clear class="span-two">AC</button>
+		<button data-delete>DEL</button>
+		<button data-number="π">π</button>
+		<button data-operation="%">%</button>
+		<button data-operation="/">÷</button>
+
+		<!-- Number Row 1 -->
+		<button data-number="7">7</button>
+		<button data-number="8">8</button>
+		<button data-number="9">9</button>
+		<button data-operation="*">×</button>
+        <button data-number>(</button>
+        <button data-number>)</button>
+        
+
+		<!-- Number Row 2 -->
+		<button data-number="4">4</button>
+		<button data-number="5">5</button>
+		<button data-number="6">6</button>
+		<button data-operation="-">−</button>
+		<button data-number=".">.</button>
+        <button data-equals class="span-two-rows">=</button>
+
+		<!-- Number Row 3 -->
+		<button data-number="1">1</button>
+		<button data-number="2">2</button>
+		<button data-number="3">3</button>
+		<button data-number="0">0</button>
+		<button data-operation="+">+</button>
+
+	</div>
 </body>
-
 </html>

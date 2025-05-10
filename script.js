@@ -6,7 +6,6 @@ class Calculator {
 		this.expression = "";
 	}
 
-
 	clear() {
 		this.currentOperand = "";
 		this.previousOperand = "";
@@ -21,24 +20,27 @@ class Calculator {
 
 	appendNumber(number) {
 		console.log("appendNumber -> expression:", this.expression);
-		console.log("Last char code:", this.expression.charCodeAt(this.expression.length - 1));
-	
+		console.log(
+			"Last char code:",
+			this.expression.charCodeAt(this.expression.length - 1)
+		);
+
 		if (this.isResult) {
 			this.currentOperand = "";
 			this.expression = "";
 			this.isResult = false;
 		}
-	
+
 		if (number === "." && this.currentOperand.includes(".")) {
 			return;
 		}
-	
+
 		if (number === "(" || number === ")") {
 			this.currentOperand += number;
 			this.expression += number;
 			return;
 		}
-	
+
 		if (number === "π") {
 			if (this.currentOperand === "") {
 				this.currentOperand = Math.PI.toString();
@@ -52,27 +54,39 @@ class Calculator {
 			}
 			return;
 		}
-	
-		// ✅ Normalize fancy minus (U+2212) to regular minus
+
+		// Normalize fancy minus (U+2212) to regular minus
 		if (number === "−") {
 			number = "-";
 		}
-	
-		// ✅ Allow negative number at start
-		if (number === "-" && this.currentOperand === "") {
-			this.currentOperand = "-";
-			this.expression += "-";
-			return;
+
+		if (number === "-") {
+			// Allow if it's the first character typed
+			if (this.expression === "" && this.currentOperand === "") {
+				this.currentOperand = "-";
+				this.expression = "-";
+				return;
+			}
+
+			// Allow if last character was an operator or open parenthesis
+			const lastChar = this.expression.slice(-1);
+			if (
+				lastChar === "(" ||
+				["+", "-", "*", "/", "%", "^"].includes(lastChar)
+			) {
+				this.currentOperand += "-";
+				this.expression += "-";
+				return;
+			}
 		}
-	
+
 		this.currentOperand += number.toString();
 		this.expression += number.toString();
 	}
-	
 
 	chooseOperation(operation) {
 		if (this.currentOperand === "" && this.expression === "") return;
-	
+
 		// Handle square root symbol visually
 		if (operation === "√") {
 			this.currentOperand += "√(";
@@ -80,19 +94,19 @@ class Calculator {
 			this.updateDisplay();
 			return;
 		}
-	
+
 		// Translate display-friendly symbols to code
 		const symbolMap = {
 			"×": "*",
 			"÷": "/",
-			"^": "**"
+			"^": "**",
 		};
-	
+
 		const opForEval = symbolMap[operation] || operation;
-	
+
 		this.expression += opForEval;
 		this.currentOperand += operation;
-	
+
 		this.previousOperand = this.currentOperand;
 
 		//if (!this.currentOperandTextElement.includes("(")){
@@ -101,19 +115,20 @@ class Calculator {
 
 		this.updateDisplay();
 	}
-	
 
 	compute() {
 		console.log("Raw expression:", this.expression);
-		console.log("Character codes:", [...this.expression].map(c => c.charCodeAt(0)));
-
+		console.log(
+			"Character codes:",
+			[...this.expression].map((c) => c.charCodeAt(0))
+		);
 
 		let computation;
-	
+
 		if (this.operation) {
 			const prev = parseFloat(this.previousOperand);
 			const current = parseFloat(this.currentOperand);
-	
+
 			switch (this.operation) {
 				case "+":
 					if (isNaN(prev) || isNaN(current)) return;
@@ -145,41 +160,36 @@ class Calculator {
 					break;
 				default:
 					return;
-
 			}
-	
+
 			this.currentOperand = computation.toString();
-			this.expression = this.currentOperand; 
+			this.expression = this.currentOperand;
 			this.operation = undefined;
 			this.previousOperand = "";
 			this.isResult = true;
 			return;
 		}
-	
-		
-	
+
 		try {
 			const sanitizedExpression = this.expression
 				.replace(/[×⨉✕∗]/g, "*")
 				.replace(/[÷]/g, "/")
 				.replace(/√/g, "Math.sqrt")
 				.replace(/\u2212/g, "-");
-		
+
 			console.log("Evaluating expression:", sanitizedExpression);
-			
+
 			const result = eval(sanitizedExpression);
 			this.currentOperand = result.toString();
 			this.expression = result.toString();
 			this.previousOperand = "";
 			this.operation = undefined;
 			this.isResult = true;
-		} 
-		catch {
+		} catch {
 			this.currentOperand = "Error";
 			this.expression = "";
 			this.isResult = true;
 		}
-		
 	}
 
 	getDisplayNumber(number) {
@@ -230,7 +240,6 @@ const calculator = new Calculator(
 
 const scientificButtons = document.querySelectorAll("[data-scientific]");
 
-
 numberButtons.forEach((button) => {
 	button.addEventListener("click", () => {
 		calculator.appendNumber(button.innerText);
@@ -259,7 +268,6 @@ deleteButton.addEventListener("click", () => {
 	calculator.delete();
 	calculator.updateDisplay();
 });
-
 
 scientificButtons.forEach((button) => {
 	button.addEventListener("click", () => {
@@ -314,7 +322,6 @@ scientificButtons.forEach((button) => {
 	});
 });
 
-
 function factorial(n) {
 	if (n < 0) return NaN;
 	if (n === 0 || n === 1) return 1;
@@ -324,56 +331,77 @@ function factorial(n) {
 	}
 	return result;
 }
-
-
-
-
-
 document.addEventListener("keydown", (event) => {
 	const key = event.key;
 
-	
-	if (!isNaN(key) || key === ".") {
+	// Numbers & decimal
+	if (/\d/.test(key) || key === ".") {
 		calculator.appendNumber(key);
 		calculator.updateDisplay();
+		return;
 	}
 
+	// minus: negative vs subtraction
+	if (key === "-") {
+		const expr = calculator.expression;
+		const last = expr.slice(-1);
 
-	if (["+", "-", "*", "/", "%", "^"].includes(key)) {
+		//if at start, or right after "(" or another operator → unary minus
+		if (
+			expr === "" ||
+			last === "(" ||
+			["+", "*", "/", "%", "^"].includes(last)
+		) {
+			calculator.appendNumber("-");
+		} else {
+			// otherwise it’s subtraction
+			calculator.chooseOperation("-");
+		}
+
+		calculator.updateDisplay();
+		return;
+	}
+
+	// Other operators
+	if (["+", "*", "/", "%", "^"].includes(key)) {
 		calculator.chooseOperation(key);
 		calculator.updateDisplay();
+		return;
 	}
 
-
+	// Compute / equals
 	if (key === "Enter" || key === "=") {
-		event.preventDefault(); // prevent form submit if present
+		event.preventDefault();
 		calculator.compute();
 		calculator.updateDisplay();
+		return;
 	}
 
-
+	// Delete / backspace
 	if (key === "Backspace") {
 		calculator.delete();
 		calculator.updateDisplay();
+		return;
 	}
 
-
+	// Clear (C key)
 	if (key.toLowerCase() === "c") {
 		calculator.clear();
 		calculator.updateDisplay();
+		return;
 	}
 
-	// Keyboard shortcut for  √ and π 
-	//use r key for square root
-	// use p for pi
+	// √ and π shortcuts
 	if (key.toLowerCase() === "r") {
 		calculator.chooseOperation("√");
 		calculator.updateDisplay();
+		return;
 	}
 	if (key.toLowerCase() === "p") {
 		calculator.appendNumber("π");
 		calculator.updateDisplay();
+		return;
 	}
-});s
+});
 
-
+s;
